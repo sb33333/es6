@@ -3,7 +3,9 @@ ModuleLoader
     .add("./module3.js")
     .add("./module2.js", "ns2")
     .add("./async.js")
-    // .init(null, true);
+    .init(null, true);
     ;
 
-ModuleLoader.onModuleImported(ajax);
+ModuleLoader.onModuleImported(() => {
+    ajax();
+});

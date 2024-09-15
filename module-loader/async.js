@@ -1,7 +1,7 @@
 export async function ajax () {
     var value = await new Promise ((resolve, reject) => {
         $.ajax({
-            url: "/es6/file.txt"
+            url: "/file.txt"
         }).done(res => {
             resolve(res);
         }).fail(err => {
@@ -9,6 +9,6 @@ export async function ajax () {
         });
     });
 
+    value = JSON.parse(value);
     console.log(value);
-    
 }
