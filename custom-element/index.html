@@ -19,6 +19,10 @@
                     <td>
                         <input name="age" value="40">
                     </td>
+                    <td>
+                        <label><input type="radio" name="hasCar0" value="Y" checked>Y</label>
+                        <label><input type="radio" name="hasCar0" value="N">N</label>
+                    </td>
                 </tr>
                 <tr>
                     <td>
@@ -26,6 +30,17 @@
                     </td>
                     <td>
                         <input name="age" value="50">
+                    </td>
+                    <td>
+                        <label><input type="radio" name="hasCar1" value="Y">Y</label>
+                        <label><input type="radio" name="hasCar1" value="N" checked>N</label>
+                    </td>
+                    <td>
+                        select:<select name="status">
+                            <option value="00">00</option>
+                            <option value="01" selected>01</option>
+                            <option value="02">02</option>
+                        </select>
                     </td>
                 </tr>
 
@@ -36,4 +51,26 @@
 <script type="module" src="./index.js">
 
 </script>
+<template id="row-template">
+    <tr>
+        <td>
+            <input type="text" data-name="custNm">
+        </td>
+        <td>
+            <input type="text" data-name="age" >
+        </td>
+        <td>
+            <label><input type="radio" data-name="hasCar" value="Y">Y</label>
+            <label><input type="radio" data-name="hasCar" value="N">N</label>
+        </td>
+        <td>
+            select:<select data-name="status">
+                <option value="00">00</option>
+                <option value="01">01</option>
+                <option value="02">02</option>
+            </select>
+        </td>
+    </tr>
+</template>
+
 </html>
