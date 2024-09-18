@@ -6,26 +6,29 @@ const findValueFrom = function (scope, selector) {
 class CustomTable extends HTMLElement {
     
     #records = [];
-    #fieldNames = null;
+    constructor () {
+        super();
+        // if (!Array.isArray(fieldNames)) throw new Error("fieldNames must be an Array");
+        // this.#fieldNames = fieldNames;
+    }
+    
     _recordExtractor (customElement) {
-        throw new Error("not implemented.");
+        throw new Error("not implemented");
     }
-    _fieldExtractor (recordElement, hasId) {
-        throw new Error("not implemented.");
+    _convertHtmlElementToRecord (recordElement) {
+        throw new Error("not implemented");
     }
+    
     _idSymbol = Symbol("id");
     _elementSymbol = Symbol("element");
 
     readFromHtml () {
-        return Array.from(this._recordExtractor(this)).map(element => {
-            var record = this._fieldExtractor(element);
-            if (element[this._idSymbol]) {
-                record[this._idSymbol] = element[this._idSymbol];
-            } else {
-                var uuid = crypto.randomUUID();
-                element[this._idSymbol] = uuid;
-                record[this._idSymbol] = uuid;
-            }
+        return Array.from(this._recordExtractor(this))
+        .map(element => {
+            var record = this._convertHtmlElementToRecord(element);
+            var uuid = crypto.randomUUID();
+            element[this._idSymbol] = uuid;
+            record[this._idSymbol] = uuid;
             // record[this._elementSymbol] = element;
             return record;
         });
@@ -35,12 +38,6 @@ class CustomTable extends HTMLElement {
 
     render (id, record) {
         throw new Error("not implemented");
-    }
-    
-    constructor (fieldNames) {
-        super();
-        if (!Array.isArray(fieldNames)) throw new Error("fieldNames must be an Array");
-        this.#fieldNames = fieldNames;
     }
 
     get records () {
@@ -54,32 +51,35 @@ class CustomTable extends HTMLElement {
 }
 
 class CustomTable2 extends CustomTable {
+    #template = null;
+    #fieldNames = null;
     constructor () {
-        super(["custNm", "age", "hasCar", "status"]);
+        super();
+        // ["custNm", "age", "hasCar", "status"]
+        this.#template = document.querySelector("template");
+        this.#fieldNames = {
+            custNm:(recordElement) => findValueFrom(recordElement, "[name=custNm]"),
+        }
     }
 
+    #fieldNames = {};
+    _convertHtmlElementToRecord (recordElement) {
+        return Object.entries(this.#fieldNames).reduce((acc, cur) => {
+            acc[cur[0]] = cur[1](recordElement);
+            return acc;
+        }, {});
+    }
     _recordExtractor (customElement) {
         return Array.from(customElement.querySelectorAll("tbody tr"));
     }
-    _fieldExtractor (recordElement, hasId) {
-        var obj = {
-            custNm:findValueFrom(recordElement, "[name=custNm]"),
-            age:findValueFrom(recordElement, "[name=age]"),
-            hasCar:findValueFrom(recordElement, "[name^=hasCar][checked]"),
-            status:findValueFrom(recordElement, "[name=status]"),
-            //[this._elementSymbol]: recordElement
-        }
-        if (!hasId) obj[this._idSymbol] = crypto.randomUUID();
-
-        return obj;
-    }
+    
 
     renew () {
         this.records.forEach((r, index) => this.render(r[this._idSymbol], index, r));
     }
     render (id, index, recordData) {
-        var template = document.querySelector("#row-template").content;
-        var clone = template.cloneNode(true);
+        
+        var clone = this.#template.cloneNode(true).content;
         for (var prop in recordData) {
             var fields = Array.from(clone.querySelectorAll(`[data-name=${prop}]`));
             fields.forEach(f => {
@@ -94,8 +94,8 @@ class CustomTable2 extends CustomTable {
         }
         console.log(Array.from(clone.querySelectorAll("[name^=hasCar]")).map(f=>f.checked));
         this._recordExtractor(this).filter(r => r[this._idSymbol] === id).forEach(r => {
-            r.replaceWith(clone);
             clone.querySelector("tr")[this._idSymbol] = id;
+            r.replaceWith(clone);
             console.log(r);
         });
         
