@@ -26,14 +26,14 @@ class CustomTable extends HTMLElement {
                 element[this._idSymbol] = uuid;
                 record[this._idSymbol] = uuid;
             }
-            record[this._elementSymbol] = element;
+            // record[this._elementSymbol] = element;
             return record;
         });
         
         
     }
 
-    render () {
+    render (id, record) {
         throw new Error("not implemented");
     }
     
@@ -67,32 +67,39 @@ class CustomTable2 extends CustomTable {
             age:findValueFrom(recordElement, "[name=age]"),
             hasCar:findValueFrom(recordElement, "[name^=hasCar][checked]"),
             status:findValueFrom(recordElement, "[name=status]"),
-            [this._elementSymbol]: recordElement
+            //[this._elementSymbol]: recordElement
         }
         if (!hasId) obj[this._idSymbol] = crypto.randomUUID();
 
         return obj;
     }
 
-    render () {
+    renew () {
+        this.records.forEach((r, index) => this.render(r[this._idSymbol], index, r));
+    }
+    render (id, index, recordData) {
         var template = document.querySelector("#row-template").content;
-        this.records.forEach((record, index) => {
-            var clone = template.cloneNode(true);
-            for (var prop in record) {
-                var fields = Array.from(clone.querySelectorAll(`[data-name=${prop}]`));
-                fields.forEach(f => {
-                    if (f.tagName === "INPUT" && (f.type === "radio" || f.type === "checkbox")) {
-                        f.name = `${prop}_${index}`;
-                        if(f.value === record[prop]) f.checked = true;
-                    } else {
-                        f.name = prop;
-                        f.value = record[prop];
-                    }
-                })
-            }
-
-            record[this._elementSymbol].replaceWith(clone);
+        var clone = template.cloneNode(true);
+        for (var prop in recordData) {
+            var fields = Array.from(clone.querySelectorAll(`[data-name=${prop}]`));
+            fields.forEach(f => {
+                if (f.tagName === "INPUT" && (f.type === "radio" || f.type === "checkbox")) {
+                    f.name = `${prop}_${index}`;
+                    if(f.value === recordData[prop]) f.checked = true;
+                } else {
+                    f.name = prop;
+                    f.value = recordData[prop];
+                }
+            });
+        }
+        console.log(Array.from(clone.querySelectorAll("[name^=hasCar]")).map(f=>f.checked));
+        this._recordExtractor(this).filter(r => r[this._idSymbol] === id).forEach(r => {
+            r.replaceWith(clone);
+            clone.querySelector("tr")[this._idSymbol] = id;
+            console.log(r);
         });
+        
+        
     }
 }
 
