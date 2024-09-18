@@ -1,18 +1,38 @@
-const findValueFrom = function (scope, selector) {
+const findValueFrom = function (scope, selector, defaultValue) {
     var input = scope.querySelector(selector);
-    return input?.value;
+    return input?.value || defaultValue;
 }
 
 class CustomTable extends HTMLElement {
     
     #records = [];
-    constructor () {
+    #changeListeners = [];
+    constructor (model = {}) {
         super();
-        // if (!Array.isArray(fieldNames)) throw new Error("fieldNames must be an Array");
-        // this.#fieldNames = fieldNames;
+        var _model = {
+            addChangeListener: (listener) => {
+                this.#changeListeners.push(listener);
+                return () => {
+                    this.#changeListeners = this.#changeListeners.filter(l => l !== listener);
+                }
+            },
+            // test code. not going to be exposed.
+            invokeListeners : () => {
+                var records = this.records;
+                this.#changeListeners.forEach(l => l(records));
+            }
+        };
+
+        _model = Object.assign(_model, model);
+        Object.defineProperty(this, "model", {
+            value: Object.freeze(_model),
+            writable: false,
+            configurable: false,
+            iterable: true,
+        });
     }
     
-    _recordExtractor (customElement) {
+    _extractRecord (customElement) {
         throw new Error("not implemented");
     }
     _convertHtmlElementToRecord (recordElement) {
@@ -20,10 +40,10 @@ class CustomTable extends HTMLElement {
     }
     
     _idSymbol = Symbol("id");
-    _elementSymbol = Symbol("element");
+    // _elementSymbol = Symbol("element");
 
-    readFromHtml () {
-        return Array.from(this._recordExtractor(this))
+    #readFromHtml () {
+        return Array.from(this._extractRecord(this))
         .map(element => {
             var record = this._convertHtmlElementToRecord(element);
             var uuid = crypto.randomUUID();
@@ -36,16 +56,13 @@ class CustomTable extends HTMLElement {
         
     }
 
-    render (id, record) {
-        throw new Error("not implemented");
-    }
 
     get records () {
         return this.#records.slice();
     }
 
     connectedCallback () {
-        this.#records = this.readFromHtml();
+        this.#records = this.#readFromHtml();
     }
 
 }
@@ -54,30 +71,37 @@ class CustomTable2 extends CustomTable {
     #template = null;
     #fieldNames = null;
     constructor () {
-        super();
+        super({
+            test: ()  => {
+                console.log(this.records);
+                this.model.invokeListeners();
+            }
+        });
         // ["custNm", "age", "hasCar", "status"]
         this.#template = document.querySelector("template");
         this.#fieldNames = {
             custNm:(recordElement) => findValueFrom(recordElement, "[name=custNm]"),
+            age:(recordElement) => findValueFrom(recordElement, "[name=age]"),
+            hasCar:(recordElement) => findValueFrom(recordElement, "[name^=hasCar][checked]"),
+            status:(recordElement) => findValueFrom(recordElement, "[name=status]", "00")
         }
+        this.model.addChangeListener(
+            (records) => records.forEach((r, index) => this.#render(r[this._idSymbol], index, r))
+        );
     }
 
-    #fieldNames = {};
     _convertHtmlElementToRecord (recordElement) {
         return Object.entries(this.#fieldNames).reduce((acc, cur) => {
             acc[cur[0]] = cur[1](recordElement);
             return acc;
         }, {});
     }
-    _recordExtractor (customElement) {
+    _extractRecord (customElement) {
         return Array.from(customElement.querySelectorAll("tbody tr"));
     }
     
 
-    renew () {
-        this.records.forEach((r, index) => this.render(r[this._idSymbol], index, r));
-    }
-    render (id, index, recordData) {
+    #render (id, index, recordData) {
         
         var clone = this.#template.cloneNode(true).content;
         for (var prop in recordData) {
@@ -92,14 +116,11 @@ class CustomTable2 extends CustomTable {
                 }
             });
         }
-        console.log(Array.from(clone.querySelectorAll("[name^=hasCar]")).map(f=>f.checked));
-        this._recordExtractor(this).filter(r => r[this._idSymbol] === id).forEach(r => {
+        
+        this._extractRecord(this).filter(r => r[this._idSymbol] === id).forEach(r => {
             clone.querySelector("tr")[this._idSymbol] = id;
             r.replaceWith(clone);
-            console.log(r);
         });
-        
-        
     }
 }
 
