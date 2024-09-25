@@ -1,3 +1,5 @@
+// getter 보완하기(disabled등)
+
 const _observer = new MutationObserver(mutations => {
 mutations.forEach(mutation=>{
 mutation.removedNodes.forEach(removedNode =>{
