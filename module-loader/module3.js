@@ -1,3 +1,3 @@
 export function greeting() {
-    return "greeting() override.";
+    return "overwrite greeting().";
 }

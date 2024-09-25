@@ -1,21 +1,23 @@
+const MODULE_IMPORT_EVENT_NAME = "moduleImport";
+
 const ModuleLoader = (function() {
     const moduleURIs = [];
     const importedModule ={};
     const logMessageArray=[];
     let canOverwrite = false;
-    const addLogMessage =function(...messages){
+    const addLogMessage = (...messages) => {
         logMessageArray.push(messages);
     }
-    const add = function (uri, name){
+    const add = (uri, name) => {
         if(!uri) throw new Error("module uri cannot be null.");
         moduleURIs.push({
-            uri:uri,
-            name:name
+            uri,
+            name,
         });
-        return this;
+        return ModuleLoader;
     }
     let loaded=null;
-    const onModuleImported=function(callback){
+    const onModuleImported= (callback) => {
         if(!loaded){
             init().then(()=>callback());
         } else {
@@ -23,13 +25,13 @@ const ModuleLoader = (function() {
         }
     }
 
-    const init = function(callback, overwrite){
+    const init = (callback, overwrite)=>{
         if(loaded)return loaded;
         loaded=loadModules(callback, overwrite);
         return loaded;
     }
 
-    const loadModules=function(callback, overwrite){
+    const loadModules= (callback, overwrite) => {
         console.time();
         if(loaded)throw new Error("already initialized.");
         if(!moduleURIs?.length) throw new Error("module info Array is empty.");
@@ -63,6 +65,7 @@ const ModuleLoader = (function() {
                 if(callback && typeof callback === "function"){
                     callback();
                 }
+                document.dispatchEvent(new Event(MODULE_IMPORT_EVENT_NAME, {bubbles:true}));
                 console.timeEnd();
             });
     }
@@ -135,8 +138,8 @@ const ModuleLoader = (function() {
         }
     }
     return {
-        init:init,
-        add:add,
-        onModuleImported:onModuleImported,
+        init,
+        add,
+        onModuleImported,
     }
 })();

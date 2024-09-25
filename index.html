@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>es6 example</title>
+</head>
+<body>
+    <div>
+        <button onclick="console.log(greeting());">button with onclick handler</button>
+    </div>
+    <div>
+        <table>
+            <tbody>
+                <tr>
+                    <td>
+                        <input name="custNm" data-name="custNm" type="text">
+                    </td>
+                    <td>
+                        <input name="age" data-name="age" type="text">
+                    </td>
+                    <td>
+                        <label>Y<input type="radio" name="hasCar_0" data-name="hasCar" value="Y"></label>
+                        <label>N<input type="radio" name="hasCar_0" data-name="hasCar" value="N"></label>
+                    </td>
+                    <td>
+                        select:<select name="status" data-name="status">
+                            <option value="00">00</option>
+                            <option value="01">01</option>
+                            <option value="02">02</option>
+                            <option value="03">03</option>
+                        </select>
+                    </td>
+                    <td>
+                        <ul>
+                            <li><label>A<input type="checkbox" name="chk_0" data-name="chk" value="A"></label></li>
+                            <li><label>B<input type="checkbox" name="chk_0" data-name="chk" value="B"></label></li>
+                            <li><label>C<input type="checkbox" name="chk_0" data-name="chk" value="C"></label></li>
+                            <li><label>D<input type="checkbox" name="chk_0" data-name="chk" value="D"></label></li>
+                            <li><label>E<input type="checkbox" name="chk_0" data-name="chk" value="E"></label></li>
+                        </ul>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+<script src="/static/jquery-3.7.1.min.js"></script>
+<script src="/module-loader/module-loader.js"></script>
+<script src="./module-loader-example.js"></script>
+<script src="/my-proxy/my-proxy.js"></script>
+<script src="./my-proxy-example.js"></script>
+<script>
+
+</script>
+</html>

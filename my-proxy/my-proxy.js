@@ -1,3 +1,19 @@
+// getter 보완하기(disabled등)
+const revokeWeakMap = new WeakMap();
+const _observer = new MutationObserver(mutations => {
+    mutations.forEach(mutation=>{
+        mutation.removedNodes.forEach(removedNode =>{
+            // removedNode.removeEventListener("input", iNPUT_EVENT_HANDLER);
+            if(revokeWeakMap.has(removedNode)){
+                var revokes=revokeWeakMap.get(removedNode);
+                Object.values(revokes).forEach(revoke=>revoke());
+            }
+        });
+    });
+});
+
+_observer.observe(document.body, {childList:true, subtree:true});
+
 const _getCheckedValues = (inputElementArray) => {
     var checked = inputElementArray.filter(input => input.checked).map(input => input.value);
     return (checked.length === 1) ? checked[0] : checked;
@@ -57,11 +73,10 @@ const getter = (target, prop, receiver, recordProxy) => {
     return undefined;
 }
 
-
-function test2 (element, keyAttribute, getHandlers, setHandlers) {
+function test2(element, keyAttribute, getHandlers, setHandlers) {
     var _getHandlers = [getter, ...getHandlers];
     var _setHandlers = [setter, ...setHandlers];
-    var recordProxy = Array.from(element.querySelectorAll(`[${keyAttribute}]`))
+    var composition = Array.from(element.querySelectorAll(`[${keyAttribute}]`))
     .reduce((acc, cur) => {
         var key = cur.getAttribute(keyAttribute);
         if (key in acc) {
@@ -77,68 +92,62 @@ function test2 (element, keyAttribute, getHandlers, setHandlers) {
         }
         return acc;
     }, {});
-
-    recordProxy = Object.entries(recordProxy).reduce((acc, cur) => {
-        Object.defineProperty(acc, cur[0], {
-            writable:false,
-            configurable: false,
-            enumerable: true,
-            value: new Proxy(cur[1], {
-                /**
-                 * getter가 호출되는 경우 handler를 실행합니다. 최초로 반환되는 값이 있는 경우 반환됩니다.
-                 * 반환된 값이 있어도 handler를 모두 실행하긴 합니다.
-                 * 
-                 * handler는 target, prop, receiver를 파라미터로 받습니다.
-                 */
-                _getHandlerChain (target, prop, receiver) {
-                    var t = _getHandlers.reduce((acc, handler) => {
-                        var result = handler(target, prop, receiver, recordProxy);
-                        
-                        if (!acc) acc = result;
-                        return acc;
-                    }, null);
-                    return t;
-                },
-                /** 
-                 * setter가 호출되는 경우 handler를 실행합니다.
-                 * 실제 값을 설정하는 handler에서 true를 반환하도록 합니다.
-                 * reducer 호출 중 true가 한 번이라도 반환되면 true가 반환됩니다.
-                 */
-                _setHandlerChain (target, prop, newValue, receiver) {
-                    return _setHandlers.reduce((acc, handler) => {
-                        var result = handler(target, prop, newValue, receiver, recordProxy);
-                        if (!acc) acc = result;
-                        return acc;
-                    }, false);
-                },
-                get(target, prop, receiver) {
-                    return this._getHandlerChain(target, prop, receiver);
-                    
-                },
-                set(target, prop, newValue, receiver) {
-                    return this._setHandlerChain(target, prop, newValue, receiver);
-                },
-            })
+    
+    composition = Object.entries(composition).reduce((acc, cur)=>{
+        var revocableProxy = Proxy.revocable(cur[1], {
+            _getHandlerChain(target,prop,receiver){
+                var t =_getHandlers.reduce((acc, handler)=>{
+                    var result = handler(target, prop, receiver, recordProxy);
+                    if(!acc)acc=result;
+                    return acc;
+                }, null);
+                return t;
+            },
+            _setHandlerChain(target,prop,newValue,receiver){
+                return _setHandlers.reduce((acc, handler)=>{
+                    var result = handler(target,prop,newValue,receiver,recordProxy);
+                    if(!acc)acc=result;
+                    return acc;
+                }, false);
+            },
+            get(target,prop,receiver){
+                return this._getHandlerChain(target,prop,receiver);
+            },
+            set(target,prop,newValue,receiver){
+                return this._setHandlerChain(target,prop,newValue,receiver);
+            },
         });
+        Object.defineProperty(acc["proxies"], cur[0], {
+            writable:false,
+            configurable:false,
+            enumerable:true,
+            value:revocableProxy.proxy
+        });
+        acc["revokes"][cur[0]]=revocableProxy.revoke;
         return acc;
-    }, {});
-
+    }, {
+        proxies:{},
+        revokes:{}
+    });
+    
+    var recordProxy =composition.proxies;
     let eventListeners = [];
-    Object.defineProperty(recordProxy, "addChangeListener", {
-        value: function (listener) {
+    Object.defineProperty(recordProxy, "addInputListener", {
+        value:function(listener){
             eventListeners.push(listener);
             return () => {
-                eventListeners = eventListeners.filter(l => l!==listener);
+                eventListeners = eventListeners.filter(l=>l!==listener);
+                listener=null
             }
         }
     })
     Object.defineProperty(recordProxy, "dispatch", {
-        value: function (event) {
-            eventListeners.forEach(l => l(recordProxy, event));
+        value:function(event){
+            eventListeners.forEach(l=>l(recordProxy, event));
         }
     })
     
-    element.addEventListener("input", function (event) {
+    const eventHandler = function(event){
         recordProxy.dispatch({
             target:{
                 key:event.target.getAttribute(keyAttribute),
@@ -149,7 +158,15 @@ function test2 (element, keyAttribute, getHandlers, setHandlers) {
             prop:"value",
             newValue:event.target.value
         })
-    });
-
+    };
+    element.addEventListener("input", eventHandler);
+    composition.revokes["eventHandler"] = () => {
+        console.debug("event listener removed");
+        element.removeEventListener("input", eventHandler);
+        eventListeners.forEach((e, i)=>eventListeners[i]=null);
+        eventListeners=null;
+    }
+    revokeWeakMap.set(element, composition.revokes);
     return recordProxy;
-}
+    
+} // end of test2();
