@@ -5,3 +5,16 @@ ModuleLoader
     
     .init(null, true);
     ;
+
+
+document.addEventListener("moduleImport", (e) => {
+    console.log(e);
+});
+$(document).on("moduleImport", (e) => {
+    console.log(e);
+});
+
+ModuleLoader.onModuleImported(() => {
+    // property from module
+    console.log(ns2.test);
+});
