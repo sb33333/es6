@@ -63,13 +63,18 @@ const setter = (target, prop, newValue, receiver, recordProxy) => {
 }
 
 const getter = (target, prop, receiver, recordProxy) => {
-    if (prop === "value") {
+    switch(prop){
+    case "value":
         if(target.tagName === "INPUT" && (target.type === "radio" || target.type === "checkbox")) {
             return _getCheckedValues(target.element);
         } else {
             return target.element.reduce((val, cur) => cur.value, "");
         }
+    case "disabled":
+    case "readOnly":
+        return target.element.reduce((prop, cur) => cur[prop], undefined);
     }
+    
     return undefined;
 }
 

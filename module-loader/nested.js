@@ -8,4 +8,4 @@ console.log(module2.default);
 return module3.greeting();
 };
 
-export {t as greeting};
+export {test as greeting};

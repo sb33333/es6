@@ -1,14 +1,11 @@
-export async function ajax () {
-    var value = await new Promise ((resolve, reject) => {
+export const data = (() => {
+    return new Promise ((resolve, reject) => {
         $.ajax({
-            url: "/file.txt"
+            url: "/static/json.txt"
         }).done(res => {
             resolve(res);
         }).fail(err => {
             reject(err);
         });
-    });
-
-    value = JSON.parse(value);
-    console.log(value);
-}
+    }).then(res => JSON.parse(res));
+})();
