@@ -99,7 +99,7 @@ function test2(element, keyAttribute, getHandlers, setHandlers) {
     var _setHandlers = [setter, ...setHandlers]; // setter 체인
 
     // keyAttribute에 따라 입력 요소들을 그룹화
-    var composition = Array.from(element.querySelectorAll(`[${keyAttribute}]`))
+    var proxyHolder = Array.from(element.querySelectorAll(`[${keyAttribute}]`))
         .reduce((acc, cur) => {
             var key = cur.getAttribute(keyAttribute);
             if (key in acc) {
@@ -117,7 +117,7 @@ function test2(element, keyAttribute, getHandlers, setHandlers) {
         }, {});
 
     // 각 그룹에 대해 Proxy를 생성하고, getter/setter 체인을 적용
-    composition = Object.entries(composition).reduce((acc, cur) => {
+    proxyHolder = Object.entries(proxyHolder).reduce((acc, cur) => {
         var revocableProxy = Proxy.revocable(cur[1], {
             _getHandlerChain(target, prop, receiver) {
                 var t = _getHandlers.reduce((acc, handler) => {
@@ -154,7 +154,7 @@ function test2(element, keyAttribute, getHandlers, setHandlers) {
         revokes: {}
     });
 
-    var recordProxy = composition.proxies;
+    var recordProxy = proxyHolder.proxies;
     let eventListeners = [];
 
     // 입력 리스너를 추가하는 메서드를 Proxy 객체에 정의
@@ -191,13 +191,13 @@ function test2(element, keyAttribute, getHandlers, setHandlers) {
     element.addEventListener("input", eventHandler);
 
     // eventHandler를 제거하는 함수도 WeakMap에 저장하여 나중에 해제 가능하도록 함
-    composition.revokes["eventHandler"] = () => {
+    proxyHolder.revokes["eventHandler"] = () => {
         console.debug("event listener removed");
         element.removeEventListener("input", eventHandler);
         eventListeners.forEach((e, i) => eventListeners[i] = null);
         eventListeners = null;
     };
-    revokeWeakMap.set(element, composition.revokes);
+    revokeWeakMap.set(element, proxyHolder.revokes);
     return recordProxy;
-    
+
 } // end of test2();
