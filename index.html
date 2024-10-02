@@ -55,6 +55,35 @@
                                 </ul>
                             </td>
                         </tr>
+                        <tr>
+                            <td>
+                                <input name="custNm" data-name="custNm" type="text">
+                            </td>
+                            <td>
+                                <input name="age" data-name="age" type="text">
+                            </td>
+                            <td>
+                                <label>Y<input type="radio" name="hasCar_0" data-name="hasCar" value="Y"></label>
+                                <label>N<input type="radio" name="hasCar_0" data-name="hasCar" value="N"></label>
+                            </td>
+                            <td>
+                                select:<select name="status" data-name="status">
+                                    <option value="00">00</option>
+                                    <option value="01">01</option>
+                                    <option value="02">02</option>
+                                    <option value="03">03</option>
+                                </select>
+                            </td>
+                            <td>
+                                <ul>
+                                    <li><label>A<input type="checkbox" name="chk_0" data-name="chk" value="A"></label></li>
+                                    <li><label>B<input type="checkbox" name="chk_0" data-name="chk" value="B"></label></li>
+                                    <li><label>C<input type="checkbox" name="chk_0" data-name="chk" value="C"></label></li>
+                                    <li><label>D<input type="checkbox" name="chk_0" data-name="chk" value="D"></label></li>
+                                    <li><label>E<input type="checkbox" name="chk_0" data-name="chk" value="E"></label></li>
+                                </ul>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
 
@@ -64,9 +93,13 @@
         <div class="px-4 py-5 my-5 text-center">
             <h1 class="display-5 fw-bold text-body-emphasis"></h1>
             <div class="col-lg-6 mx-auto">
-                <button id="printAjaxData">printAjaxData</button>
-                <div id="dataOut">
-
+                <div>
+                    <button id="printAjaxData">printAjaxData</button>
+                    <div id="dataOut"></div>
+                </div>
+                <div>
+                    <button id="printAjaxData2">printAjaxData2</button>
+                    <div id="dataOut2"></div>
                 </div>
             </div>
         </div>
