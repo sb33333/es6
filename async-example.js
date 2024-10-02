@@ -8,8 +8,8 @@ document.querySelector("#printAjaxData").addEventListener("click", function () {
 document.querySelector("#printAjaxData2").addEventListener("click", function() {
     var dataOut = document.querySelector("#dataOut2");
     $.ajax({
-        url: "/data1"
+        url: "/static/json.txt"
     }).done(function(res) {
-        dataOut.innerHTML = res.ajaxData.map(d => d.code);
+        dataOut.innerHTML = JSON.parse(res).ajaxData.map(d => d.desc);
     });
 });
