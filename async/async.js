@@ -1,7 +1,7 @@
 export const data = (() => {
     return new Promise ((resolve, reject) => {
         $.ajax({
-            url: "/static/json.txt"
+            url: "./static/json.txt"
         }).done(res => {
             resolve(res);
         }).fail(err => {

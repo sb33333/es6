@@ -3,7 +3,7 @@ ModuleLoader
         // .add("./module2.js")    // export default requires namespace
         .add("./module2.js", "ns2")
         // .add("./module3.js")    // overwrite 
-        .add("/async/async.js", "async")
+        .add("../async/async.js", "async")
         .init(null, true);
         ;
 
